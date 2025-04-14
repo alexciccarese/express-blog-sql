@@ -14,19 +14,30 @@ function index(req, res) {
 }
 
 function show(req, res) {
-  const postId = Number(req.params.id)
+  const postId = Number(req.params.id);
 
-  //troviamo il post tramite slug
   const sql = 'SELECT * FROM posts WHERE id = ?'
 
+  const sqlJoin = `
+  SELECT tags.*
+  FROM post_tag
+  JOIN tags ON post_tag.tag_id = tags.id
+  WHERE post_tag.post_id = ?
+  `
+
   connection.query(sql, [postId], (err, results) => {
-    if (err) return res.status(500).json({ error: 'Database query failed' })
-    if (results.length === 0) return res.status(404).json({ error: 'Post not found' })
+    if (err) return res.status(500).json({ error: 'Database query failed' });
+    if (results.length === 0) return res.status(404).json({ error: 'Post not found' });
 
-    const post = results[0]
+    const post = results[0];
 
-    res.json(post)
-  })
+    connection.query(sqlJoin, [postId], (err, tagsResults) => {
+      if (err) return res.status(500).json({ message: 'Query Failed' });
+
+      post.tags = tagsResults;
+      res.json(post);
+    });
+  });
 }
 
 function store(req, res) {

@@ -77,14 +77,14 @@ function modify(req, res) {
 function destroy(req, res) {
       const postId = Number(req.params.id)
 
-      const post = menu.find(post => post.id === postId)
-      console.log(post);
+      const sql = 'DELETE FROM posts WHERE id = ?'
 
-      //rimuoviamo il singolo id dall'arrey
-      menu.splice(menu.indexOf(post), 1)
-      console.log(menu);
-
-      res.sendStatus(204)
+      connection.query(sql, [postId], (err, results) => {
+        if (err) return res.status(500).json({ message: 'Query Failed' })
+        if (results.affectedRows === 0) return res.status(404).json({ message: 'There is nothing to delete' })
+    
+        res.sendStatus(204)
+      })
     }
 
 module.exports = {
